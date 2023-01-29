@@ -5,6 +5,20 @@ class CurveABC:
 
     def __init__(self, df: pd.DataFrame, abc_column: str, label_a: float = 0.2,
                  label_b: float = 0.5):
+        """
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            data with numeric column to be used in abc analysis
+        abc_column: str
+            column with derired data for abc anls
+         label_a: float, optional
+            A Label - best 20% (default is 0.2)
+         label_b: float, optional
+            B Label - best category after A Label (default is 0.5).
+            C Label - worst performing group, is defined by 1 - (a_label+b_label).
+        """
 
         self.df = df.copy()
         self.abc_column = abc_column
@@ -31,25 +45,57 @@ class CurveABC:
         self.abc_summary_table = pd.DataFrame({})
 
     def _order_by_values(self):
+        """order dataframe by the values of abc_column"""
         self.df.sort_values(by=self.abc_column, inplace=True, ascending=False)
         self.df.index = range(self.df.shape[0])
 
-    def _make_rank(self, method="first", ascending=False):
-        self.items_rank = self.values.rank(method=method, ascending=ascending)
+    def _make_rank(self):
+        """
+        Returns
+        -------
+        Pandas.Series
+            rank of values of abc_column
+        """
+        self.items_rank = self.values.rank(method="first", ascending=False)
         return self.items_rank
 
     def _make_item_perc(self):
+        """
+        Returns
+        -------
+        Pandas.Series
+            values rank percentege of total
+            exp: 20 rank = 0.45 -> 20 best itens correspond to 45% of total results
+        """
         self.total_items = self.items_rank.count()
         self.item_perc = self.items_rank / self.total_items
         return self.item_perc
 
     def _make_values_perc(self):
+        """
+
+        Returns
+        -------
+        Pandas.Series
+            abc_column value divided by total values
+        """
         self.total_values = self.values.sum()
         self.values_perc = self.values / self.total_values
         self.values_cum_perc = self.values_perc.cumsum()
         return self.values_cum_perc
 
     def _classify_abc(self, value):
+        """
+        Classify labels by value
+        Parameters
+        ----------
+        value: float
+
+        Returns
+        -------
+        str
+            the label ('A', 'B' or 'C')
+        """
         if value <= self.label_a:
             return "A"
         elif value <= self.label_a + self.label_b:
@@ -58,10 +104,12 @@ class CurveABC:
             return "C"
 
     def _make_labels(self):
+        """return series of labels"""
         self.labels = self.item_perc.apply(self._classify_abc)
         return self.labels
 
     def abc(self):
+        """performs abc analysis"""
         self._make_rank()
         self._make_item_perc()
         self._make_values_perc()
@@ -73,7 +121,7 @@ class CurveABC:
         self.df[cols["values_perc"]] = self.values_cum_perc
         self.df[cols["label"]] = self.labels
 
-        self.make_summary()
+        # self.make_summary()
 
     def add_prefix(self, prefix: str, connector: str = "_"):
         change_cols = {}
