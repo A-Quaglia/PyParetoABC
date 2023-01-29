@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-class CurveABC:
+class ParetoABC:
 
     def __init__(self, df: pd.DataFrame, abc_column: str, label_a: float = 0.2,
                  label_b: float = 0.5):
@@ -39,8 +39,8 @@ class CurveABC:
         self.label_b = label_b
         self.label_c = 1 - (label_a + label_b)
 
-        self.abc_columns_names = {"rank": "rank", "item_porc": "items representation",
-                                  "values_porc": "values representation", "label": 'abc_labels'}
+        self.abc_columns_names = {"rank": "rank", "item_perc": "items representation",
+                                  "values_perc": "values representation", "label": 'abc_labels'}
 
         self.abc_summary_table = pd.DataFrame({})
 
